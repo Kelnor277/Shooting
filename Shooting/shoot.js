@@ -47,7 +47,7 @@ function confirmed(argv, msg){
         var i = 0;
         command += " --?? $Atk.total >= 91 AND $Atk.total < 94?? JAM:| Jams if Unreliable.";
         command += " --?? $Atk.total >= 94 AND $Atk.total < 96?? JAM:| Jams if Unreliable, Semi-Auto or Full-Auto and not reliable.";
-        command += " --?? $Atk.total >= 96 AND $Atk.total < 99?? JAM:| Jams if Unreliable, Semi-Auto, Full-Auto and not reliable.";
+        command += " --?? $Atk.total >= 96 AND $Atk.total < 99?? JAM:| Jams if Unreliable, Semi-Auto, Full-Auto, or Standard and not reliable.";
         command += " --?? $Atk.total == 100 ?? JAM:| Your weapon Jammed no matter what.";
         while(target_test >= 0){
             command += " --?? $Atk.total <= " + target_test + " AND $Atk.total > " + (target_test - 10) +
