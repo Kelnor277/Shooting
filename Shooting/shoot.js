@@ -1,5 +1,5 @@
 var weapons = {
-    'SMG': {'name':'SMG', 'attributes':{}, 'range':{'point': 3, 'short':10,'medium':20,'long':50, 'extreme': 100}, 'ROF': {"Single": 1, "Burst": 3, "Auto": 6}, 'damage': "1d10+1", "penetration": 0},
+    'SMG': {'name':'SMG', 'attributes':[], 'range':{'point': 3, 'short':10,'medium':20,'long':50, 'extreme': 100}, 'ROF': {"Single": 1, "Burst": 3, "Auto": 6}, 'damage': "1d10+1", "penetration": 0},
     'Rifle': {'name':'Rifle', 'attributes':["One", "Two"], 'range':{'point': 3, 'short':25,'medium':60,'long':120, 'extreme': 200}, 'ROF': {"Single": 1, "Burst": 3, "Auto": 6}, 'damage': "1d10+3", "penetration": 0}
 };
 
@@ -37,8 +37,9 @@ function confirmed(argv, msg){
         var ROF = shot['rof'];
         var numShots = weapons[weapon_name]['ROF'][ROF];
         var damage = weapons[weapon_name]['damage'];
+        var shooter = activeshots['shootername'];
         var target = shot['target'];
-        var command = "!power {{--format|atwill --name|" + msg.who + " --leftsub|" +
+        var command = "!power {{--emote|" + shooter + " yells \"FOR THE EMPRAHHHHH!!!!!!\" --tokenid|" + shot['tokenid'] + " --format|atwill --name|" + weapon_name+ " --leftsub|" +
             weapon_name + " --rightsub|" + range_name + " range, " + range +
             "m --Attack:|[[ [XPND][$Atk] 1d100]] vs " + target;
         command += " --?? $Atk.total >= " + target + "?? Misses:| All shots missed.";
@@ -96,10 +97,10 @@ function shoot(argv, msg) {
     var range_name = range_calc[0];
     var range_modifier = range_calc[1];
     var id = msg.playerid;
-    activeshots[id] = {'weaponName' : argv['opts']['weapon'], 'range' : range, 'range_name': range_name, 'range_modifier': range_modifier, 'rof': ROF, 'target': (skill + modifier + range_modifier)};
+    activeshots[id] = {'weaponName' : argv['opts']['weapon'], 'range' : range, 'range_name': range_name, 'range_modifier': range_modifier, 'rof': ROF, 'target': (skill + modifier + range_modifier), 'tokenid': argv['opts']['shooter_id'], 'shootername': shooter.get('name')};
     var command = "[Confirm](!shootconfirm --player_id " + id + ")";
     log(command);
-    var fluff = "!power {{--format|atwill --name|" + msg.who + " --Weapon|" +
+    var fluff = "!power {{--emote|" + shooter.get("name") + " yells \"FOR THE EMPRAHHHHH!!!!!!\" --tokenid|" + argv['opts']['shooter_id'] + " --format|atwill --name|" + weapon['name'] + " --Weapon|" +
         weapon['name'] + " --Range| " + range_name + ", " + range + "m --Range Modifier|+" + range_modifier +
         " --ROF|" + ROF + " Ammo Used: " + weapon['ROF'][ROF] +
         " --Roll Target:|Skill: " + skill + ", Difficulty Modifier: " + modifier + ", Range Modifier:" + range_modifier + ", Total " + (modifier + skill + range_modifier) +
