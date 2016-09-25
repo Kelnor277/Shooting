@@ -1,10 +1,10 @@
 var weapons = {
-    'SMG': {'name':'SMG', 'range':{'point': 3, 'short':10,'medium':20,'long':50, 'extreme': 100}, 'ROF': {"Single": 1, "Burst": 3, "Auto": 6}, 'damage': "1d10+1"},
-    'Rifle': {'name':'Rifle', 'range':{'point': 3, 'short':25,'medium':60,'long':120, 'extreme': 200}, 'ROF': {"Single": 1, "Burst": 3, "Auto": 6}, 'damage': "1d10+3"}
+    'SMG': {'name':'SMG', 'attributes':{}, 'range':{'point': 3, 'short':10,'medium':20,'long':50, 'extreme': 100}, 'ROF': {"Single": 1, "Burst": 3, "Auto": 6}, 'damage': "1d10+1", "penetration": 0},
+    'Rifle': {'name':'Rifle', 'attributes':["One", "Two"], 'range':{'point': 3, 'short':25,'medium':60,'long':120, 'extreme': 200}, 'ROF': {"Single": 1, "Burst": 3, "Auto": 6}, 'damage': "1d10+3", "penetration": 0}
 };
 
 var ranges = ['point blank', 'short', 'medium', 'long'];
-var modifiers = [0, 10, 0, -10, -30];
+var modifiers = [30, 10, 0, -10, -30];
 var activeshots = {};
 
 on("ready", function() {
@@ -40,17 +40,8 @@ function confirmed(argv, msg){
         var target = shot['target'];
         var command = "!power {{--format|atwill --name|" + msg.who + " --leftsub|" +
             weapon_name + " --rightsub|" + range_name + " range, " + range +
-            "ft --Attack:|[[ [XPND][$Atk] 1d100]] target is " + target;
+            "m --Attack:|[[ [XPND][$Atk] 1d100]] vs " + target;
         command += " --?? $Atk.total >= " + target + "?? Misses:| All shots missed.";
-        var target_test = target;
-        for(i = 0; i < numShots; i++){
-            command += " --?? $Atk.total < " + target_test + "?? Hit" + (i+1) + ":|" + weapon_name + "'s Damage: [[ [XPND] [$dmg] " + damage + "]]" +
-                "Location: [[1d10]]";
-            target_test -= 10;
-            if(target_test < 0){
-                break;
-            }
-        }
         target_test = target;
         var i = 0;
         while(target_test >= 0){
@@ -59,6 +50,17 @@ function confirmed(argv, msg){
             target_test -= 10;
             i++;
         }
+        var target_test = target;
+        for(i = 0; i < numShots; i++){
+            command += " --?? $Atk.total < " + target_test + "?? Hit" + (i+1) + ":|" + "[[ [XPND] [$dmg] " +
+                damage + "]] Pen " + weapons[weapon_name]['penetration'];
+            target_test -= 10;
+            if(target_test < 0){
+                break;
+            }
+        }
+        var attributes = weapons[weapon_name]['attributes'];
+        command += "--Weapon Attributes:|" + attributes.join();
         command += "}}";
         log("Shot: " + command);
         sendChat("player|" + msg.playerid, command);
@@ -94,11 +96,11 @@ function shoot(argv, msg) {
     var range_name = range_calc[0];
     var range_modifier = range_calc[1];
     var id = msg.playerid;
-    activeshots[id] = {'weaponName' : weapon['name'], 'range' : range, 'range_name': range_name, 'range_modifier': range_modifier, 'rof': ROF, 'target': (skill + modifier + range_modifier)};
+    activeshots[id] = {'weaponName' : argv['opts']['weapon'], 'range' : range, 'range_name': range_name, 'range_modifier': range_modifier, 'rof': ROF, 'target': (skill + modifier + range_modifier)};
     var command = "[Confirm](!shootconfirm --player_id " + id + ")";
     log(command);
     var fluff = "!power {{--format|atwill --name|" + msg.who + " --Weapon|" +
-        weapon['name'] + " --Range| " + range_name + ", " + range + "--Range Modifier|+" + range_modifier +
+        weapon['name'] + " --Range| " + range_name + ", " + range + "m --Range Modifier|+" + range_modifier +
         " --ROF|" + ROF + " Ammo Used: " + weapon['ROF'][ROF] +
         " --Roll Target:|Skill: " + skill + ", Difficulty Modifier: " + modifier + ", Range Modifier:" + range_modifier + ", Total " + (modifier + skill + range_modifier) +
         " --Target:| " + target.get('name') +
@@ -123,9 +125,9 @@ function distance(shooter, target){
     var gridSize = 70;
 
     var lDist = Math.abs(shooter.get("left")-target.get("left"))/gridSize;
-    lDist = lDist * 5;
+    // lDist = lDist * 5;
     var tDist = Math.abs(shooter.get("top")-target.get("top"))/gridSize;
-    tDist = tDist * 5;
+    //tDist = tDist * 5;
     var dist = 0;
 
     dist = Math.sqrt(lDist*lDist + tDist*tDist);
