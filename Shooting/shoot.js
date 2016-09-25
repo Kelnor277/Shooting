@@ -147,7 +147,7 @@ function shoot(argv, msg) {
     if(argv['opts']['secret'] == 'true'){
         fluff += " --whisper|gm";
         command += "/w gm ";
-        secret = "--secret true";
+        secret = " --secret true";
     }
     fluff += "}}";
     //{{--name|" + weapon['name'] + " " + range_name + "Modifier: " + range_modifier + "}}
