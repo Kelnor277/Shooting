@@ -23,7 +23,7 @@ on("ready", function() {
 
 function confirmed(argv, msg){
     log(argv);
-    var playerid = argv['opts']['player_id']
+    var playerid = argv['opts']['player_id'];
     if(msg.playerid != playerid && !isGM(msg.playerid)){
         return;
     }
