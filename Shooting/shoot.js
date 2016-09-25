@@ -45,6 +45,10 @@ function confirmed(argv, msg){
         command += " --?? $Atk.total >= " + target + "?? Misses:| All shots missed.";
         target_test = target;
         var i = 0;
+        command += " --?? $Atk.total >= 91 AND $Atk.total < 94?? JAM:| Jams if Unreliable.";
+        command += " --?? $Atk.total >= 94 AND $Atk.total < 96?? JAM:| Jams if Unreliable, Semi-Auto or Full-Auto and not reliable.";
+        command += " --?? $Atk.total >= 96 AND $Atk.total < 99?? JAM:| Jams if Unreliable, Semi-Auto, Full-Auto and not reliable.";
+        command += " --?? $Atk.total == 100 ?? JAM:| Your weapon Jammed no matter what.";
         while(target_test >= 0){
             command += " --?? $Atk.total <= " + target_test + " AND $Atk.total > " + (target_test - 10) +
                 "?? Degrees:| " + (i + 1);
@@ -126,9 +130,9 @@ function distance(shooter, target){
     var gridSize = 70;
 
     var lDist = Math.abs(shooter.get("left")-target.get("left"))/gridSize;
-    // lDist = lDist * 5;
+    lDist = lDist * 5;
     var tDist = Math.abs(shooter.get("top")-target.get("top"))/gridSize;
-    //tDist = tDist * 5;
+    tDist = tDist * 5;
     var dist = 0;
 
     dist = Math.sqrt(lDist*lDist + tDist*tDist);
