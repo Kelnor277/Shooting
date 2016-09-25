@@ -5,6 +5,7 @@ var weapons = {
 
 var ranges = ['point Blank', 'short', 'medium', 'long'];
 var modifiers = [30, 10, 0, -10, -30];
+var rof_modifiers = {'Single': +10, 'Burst': 0, 'Auto': -10};
 var activeshots = {};
 var gmpid = "";
 
