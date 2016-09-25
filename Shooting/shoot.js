@@ -3,9 +3,9 @@ var weapons = {
     'Rifle': {'name':'Rifle', 'attributes':["One", "Two"], 'range':{'point': 3, 'short':25,'medium':60,'long':120, 'extreme': 200}, 'ROF': {"Single": 1, "Burst": 3, "Auto": 6}, 'damage': "1d10+3", "penetration": 0, 'damage_type': "explosive"}
 };
 
-var ranges = ['point Blank', 'short', 'medium', 'long'];
+var ranges = ['point', 'short', 'medium', 'long'];
 var modifiers = [30, 10, 0, -10, -30];
-var rof_modifiers = {'Single': +10, 'Burst': 0, 'Auto': -10};
+var rof_modifiers = {'Single': 10, 'Burst': 0, 'Auto': -10};
 var activeshots = {};
 var gmpid = "";
 
@@ -134,22 +134,24 @@ function shoot(argv, msg) {
     var range_name = range_calc[0];
     var range_modifier = range_calc[1];
     var id = msg.playerid;
-    activeshots[id] = {'leftsub': leftsub, 'weaponName' : argv['opts']['weapon'], 'range' : range, 'range_name': range_name, 'range_modifier': range_modifier, 'rof': ROF, 'target': (skill + modifier + range_modifier), 'tokenid': argv['opts']['shooter_id'], 'shootername': shooter.get('name')};
+    activeshots[id] = {'leftsub': leftsub, 'weaponName' : argv['opts']['weapon'], 'range' : range, 'range_name': range_name, 'range_modifier': range_modifier, 'rof': ROF, 'target': (skill + modifier + range_modifier + rof_modifiers[ROF]), 'tokenid': argv['opts']['shooter_id'], 'shootername': shooter.get('name')};
     log(command);
     var fluff = "!power {{--format|atwill --name|" + weapon['name'] + " --Weapon:|" +
         weapon['name'] + " --Range:| " + range_name + " (+" + range_modifier + ")" + ", " + range + "m " +
         " --leftsub|" + leftsub +
         " --ROF:|" + ROF + " Ammo Used: " + weapon['ROF'][ROF] +
-        " --Roll Target:|Skill: " + skill + ", Difficulty Modifier: " + modifier + ", Range Modifier:" + range_modifier + ", Total " + (modifier + skill + range_modifier) +
+        " --Roll Target:|Skill: " + skill + ", RoF Modifier: " +  + rof_modifiers[ROF] + ", Difficulty Modifier: " + modifier + ", Range Modifier:" + range_modifier + ", Total " + (modifier + skill + range_modifier + rof_modifiers[ROF]) +
         " --Target:| " + target.get('name') + ".";
     var command = "";
+    var secret = "";
     if(argv['opts']['secret'] == 'true'){
         fluff += " --whisper|gm";
         command += "/w gm ";
+        secret = "--secret true";
     }
     fluff += "}}";
     //{{--name|" + weapon['name'] + " " + range_name + "Modifier: " + range_modifier + "}}
-    command += "[Confirm](!shootconfirm --player_id " + id + " --secret true)";
+    command += "[Confirm](!shootconfirm --player_id " + id + secret + ")";
     var message = fluff + "\n" + command;
     sendChat("player|" + msg.playerid, message);
     // sendChat("player|" + msg.playerid, command);
