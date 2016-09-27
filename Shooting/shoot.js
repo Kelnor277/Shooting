@@ -1,5 +1,7 @@
 var weapons = {
-    'SMG': {'name':'SMG', 'attributes':[], 'range':{'point': 3, 'short':10,'medium':20,'long':50, 'extreme': 100}, 'ROF': {"Single": 1, "Burst": 3, "Auto": 6}, 'damage': "1d10+1", "penetration": 0, 'damage_type': "none"},
+    'Laspistol': {'name':'Laspistol', 'attributes':["Reliable"], 'range':{'point': 3, 'short':15,'medium':60,'long':240, 'extreme': 360}, 'ROF': {"Single": 1, "Burst": 2, "Auto": 0}, 'damage': "1d10+2", "penetration": 0, 'damage_type': "Energy"},
+    'M36Lasgun': {'name':'M36 Lasgun', 'attributes':["Reliable", "Variable"], 'range':{'point': 3, 'short':50,'medium':200,'long':400, 'extreme': 500}, 'ROF': {"Single": 1, "Burst": 3, "Auto": 0}, 'damage': "1d10+3", "penetration": 0, 'damage_type': "Energy"},
+    'HeavyStubber': {'name':'Heavy Stubber', 'attributes':["Ogyrn-Proof"], 'range':{'point': 3, 'short':50,'medium':200,'long':400, 'extreme': 500}, 'ROF': {"Single": 0, "Burst": 0, "Auto": 8}, 'damage': "1d10+4", "penetration": 3, 'damage_type': "Impact"},
     'Rifle': {'name':'Rifle', 'attributes':["One", "Two"], 'range':{'point': 3, 'short':25,'medium':60,'long':120, 'extreme': 200}, 'ROF': {"Single": 1, "Burst": 3, "Auto": 6}, 'damage': "1d10+3", "penetration": 0, 'damage_type': "explosive"}
 };
 
@@ -7,7 +9,6 @@ var ranges = ['point', 'short', 'medium', 'long'];
 var modifiers = [30, 10, 0, -10, -30];
 var rof_modifiers = {'Single': 10, 'Burst': 0, 'Auto': -10};
 var activeshots = {};
-var gmpid = "";
 
 on("ready", function() {
     apicmd.on('shoot', 'helpers for shooting', '[OPTIONS] OBJECT',
@@ -19,25 +20,16 @@ on("ready", function() {
             ['-m', '--modifier [Skill]', 'modifiers to the shot'],
             ['-x', '--secret [secret?]', 'keep secret']],
         shoot);
-    apicmd.on('setgm', 'helpers for shooting', '[OPTIONS] OBJECT',
-        [['-p', '--password [password]', 'shhhh secret']],
-        auth);
     apicmd.on('shootconfirm', 'Confirmed the shot', '[OPTIONS] OBJECT',
         [['-p', '--player_id [PLAYER_ID]', "Player id"],
             ['-x', '--secret [PLAYER_ID]', "keep secret"]],
         confirmed);
 });
 
-function auth(argv, msg){
-    if(argv['opts']['password'] == "aliens"){
-        gmpid = msg.playerid;
-    }
-}
-
 function confirmed(argv, msg){
     log(argv);
     var playerid = argv['opts']['player_id'];
-    if(msg.playerid != playerid && !isGM(msg.playerid)){
+    if(msg.playerid != playerid){
         return;
     }
     var shot = activeshots[playerid];
@@ -54,7 +46,7 @@ function confirmed(argv, msg){
         var target = shot['target'];
         var command = "!power {{--emote|" + shooter + " attacks their target! --tokenid|" + shot['tokenid'] + " --format|atwill --name|" + weapon_name
             + " --leftsub|" + shot['leftsub'] +
-            "--Attack:|[[ [XPND][$Atk] 1d100]] vs " + target;
+            "--Attack:|[[ [$Atk] 1d100]] vs " + target;
         command += " --?? $Atk.total >= " + target + "?? Misses:| All shots missed.";
         target_test = target;
         var i = 0;
@@ -62,6 +54,10 @@ function confirmed(argv, msg){
         command += " --?? $Atk.total >= 94 AND $Atk.total < 96?? JAM:| Jams if Unreliable, Semi-Auto or Full-Auto and not reliable.";
         command += " --?? $Atk.total >= 96 AND $Atk.total < 99?? JAM:| Jams if Unreliable, Semi-Auto, Full-Auto, or Standard and not reliable.";
         command += " --?? $Atk.total == 100 ?? JAM:| Your weapon Jammed no matter what.";
+        var additionalhit = 10;
+        if(ROF == 'Burst'){
+            additionalhit = 20;
+        }
         while(target_test >= 0){
             command += " --?? $Atk.total <= " + target_test + " AND $Atk.total > " + (target_test - 10) +
                 "?? Degrees:| " + (i + 1);
@@ -70,9 +66,9 @@ function confirmed(argv, msg){
         }
         var target_test = target;
         for(i = 0; i < numShots; i++){
-            command += " --?? $Atk.total < " + target_test + "?? Hit" + (i+1) + ":|" + "[[ [XPND] [$dmg] " +
+            command += " --?? $Atk.total <= " + target_test + "?? Hit" + (i+1) + ":|" + "[[ [XPND] [$dmg] " +
                 damage + "]] Pen " + weapons[weapon_name]['penetration'];
-            target_test -= 10;
+            target_test -= additionalhit;
             if(target_test < 0){
                 break;
             }
